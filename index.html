@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora EOQ Profesional</title>
+    <style>
+        
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #2a3d66;
+            text-align: center;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+
+        h3 {
+            font-size: 1.5em;
+            color: #2a3d66;
+            margin-bottom: 15px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            font-size: 1em;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+
+        input[type="number"]:focus, input[type="text"]:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        .btn.eliminar {
+            background-color: #f44336;
+        }
+
+        .btn.eliminar:hover {
+            background-color: #e53935;
+        }
+
+        .table-container {
+            margin-top: 40px;
+            margin-bottom: 40px;
+        }
+
+        p {
+            font-size: 1.1em;
+            color: #555;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Calculadora EOQ Profesional</h1>
+        <p>Complete la tabla de productos y obtenga el cálculo de EOQ junto con los nuevos valores de costos con y sin EOQ.</p>
+    
+        <!-- Card para la tabla de productos -->
+        <div class="card">
+            <h3>Ingrese los datos del Producto</h3>
+            <table id="eoq-table">
+                <thead>
+                    <tr>
+                        <th>Código Item</th>
+                        <th>Nombre del Producto</th>
+                        <th>Costo de Pedido (S/.)</th>
+                        <th>Costo de Mantenimiento (S/.)</th>
+                        <th>Demanda Anual (Unidades)</th>
+                        <th>Cantidad de Pedido (P)</th>
+                        <th>EOQ</th>
+                        <th>Costo Total (S/.)</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="text" class="codigo-item"></td>
+                        <td><input type="text" class="nombre-producto"></td>
+                        <td><input type="number" class="costo-pedido" oninput="calcularEOQ()"></td>
+                        <td><input type="number" class="costo-mantenimiento" oninput="calcularEOQ()"></td>
+                        <td><input type="number" class="demanda-anual" oninput="calcularEOQ()"></td>
+                        <td><input type="number" class="cantidad-pedido" oninput="calcularEOQ()"></td>
+                        <td id="eoq">0</td>
+                        <td id="costo-total">0</td>
+                        <td><button class="btn eliminar" onclick="eliminarFila(this)">Eliminar</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button class="btn" onclick="agregarFila()">Añadir Fila</button>
+        </div>
+    
+        <!-- Card para los resultados con EOQ -->
+        <div class="card table-container">
+            <h3>Resultados con EOQ</h3>
+            <table id="resultados-eoq">
+                <thead>
+                    <tr>
+                        <th>Código Item</th>
+                        <th>Nombre del Producto</th>
+                        <th>EOQ</th>
+                        <th>Costo de Pedido (S/.)</th>
+                        <th>Costo de Mantenimiento (S/.)</th>
+                        <th>Costo Total (S/.)</th>
+                    </tr>
+                </thead>
+                <tbody id="resultados-body-eoq">
+                    <!-- Los resultados con EOQ se llenan aquí -->
+                </tbody>
+            </table>
+        </div>
+    
+        <!-- Card para los resultados sin EOQ -->
+        <div class="card table-container">
+            <h3>Resultados sin EOQ</h3>
+            <table id="resultados-sin-eoq">
+                <thead>
+                    <tr>
+                        <th>Código Item</th>
+                        <th>Nombre del Producto</th>
+                        <th>Costo de Pedido (S/.)</th>
+                        <th>Costo de Mantenimiento (S/.)</th>
+                        <th>Costo Total (S/.)</th>
+                    </tr>
+                </thead>
+                <tbody id="resultados-body-sin-eoq">
+                    <!-- Los resultados sin EOQ se llenan aquí -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <button class="btn" onclick="descargarPDF()">Descargar PDF</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.0/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+    // Función para agregar una nueva fila
+    function agregarFila() {
+        const table = document.getElementById("eoq-table").getElementsByTagName('tbody')[0];
+        const row = table.insertRow();
+        row.innerHTML = `
+            <td><input type="text" class="codigo-item"></td>
+            <td><input type="text" class="nombre-producto"></td>
+            <td><input type="number" class="costo-pedido" oninput="calcularEOQ()"></td>
+            <td><input type="number" class="costo-mantenimiento" oninput="calcularEOQ()"></td>
+            <td><input type="number" class="demanda-anual" oninput="calcularEOQ()"></td>
+            <td><input type="number" class="cantidad-pedido" oninput="calcularEOQ()"></td>
+            <td id="eoq">0</td>
+            <td id="costo-total">0</td>
+            <td><button class="btn" onclick="eliminarFila(this)">Eliminar</button></td>
+        `;
+    }
+
+    // Función para eliminar una fila
+    function eliminarFila(button) {
+        const row = button.closest('tr');
+        row.remove();
+        calcularEOQ();
+    }
+
+    // Función para calcular el EOQ y los resultados
+    // Función para calcular el EOQ y los resultados
+function calcularEOQ() {
+    const rows = document.getElementById('eoq-table').getElementsByTagName('tr');
+    const resultadosBodyEOQ = document.getElementById('resultados-body-eoq');
+    const resultadosBodySinEOQ = document.getElementById('resultados-body-sin-eoq');
+    
+    // Limpiar las tablas de resultados antes de actualizar
+    resultadosBodyEOQ.innerHTML = '';
+    resultadosBodySinEOQ.innerHTML = '';
+
+    Array.from(rows).forEach(row => {
+        const cPedido = row.querySelector('.costo-pedido');
+        const cMantenimiento = row.querySelector('.costo-mantenimiento');
+        const demanda = row.querySelector('.demanda-anual');
+        const cantidadPedido = row.querySelector('.cantidad-pedido');
+
+        if (cPedido && cMantenimiento && demanda && cantidadPedido) {
+            const costoPedido = parseFloat(cPedido.value) || 0;
+            const costoMantenimiento = parseFloat(cMantenimiento.value) || 0;
+            const demandaAnual = parseFloat(demanda.value) || 0;
+            const cantidadP = parseFloat(cantidadPedido.value) || 0;
+
+            if (costoPedido > 0 && costoMantenimiento > 0 && demandaAnual > 0 && cantidadP > 0) {
+                // Cálculo del EOQ
+                const eoq = Math.sqrt((2 * demandaAnual * costoPedido) / costoMantenimiento);
+                
+                // Cálculo del Costo de Pedido con EOQ
+                const costoPedidoEOQ = (demandaAnual / eoq) * costoPedido;
+
+                // Cálculo del Costo de Mantenimiento con EOQ
+                const costoMantenimientoEOQ = (eoq / 2) * costoMantenimiento;
+
+                // Cálculo del Costo Total con EOQ
+                const costoTotalEOQ = costoPedidoEOQ + costoMantenimientoEOQ;
+
+                // Actualizar la fila con los valores calculados en EOQ
+                row.querySelector('#eoq').textContent = eoq.toFixed(2);
+                row.querySelector('#costo-total').textContent = costoTotalEOQ.toFixed(2);
+
+                // Añadir los resultados a la tabla de resultados con EOQ
+                const resultadoRowEOQ = document.createElement('tr');
+                resultadoRowEOQ.innerHTML = `
+                    <td>${row.querySelector('.codigo-item').value}</td>
+                    <td>${row.querySelector('.nombre-producto').value}</td>
+                    <td>${eoq.toFixed(2)}</td>
+                    <td>${costoPedidoEOQ.toFixed(2)}</td>
+                    <td>${costoMantenimientoEOQ.toFixed(2)}</td>
+                    <td>${costoTotalEOQ.toFixed(2)}</td>
+                `;
+                resultadosBodyEOQ.appendChild(resultadoRowEOQ);
+
+                // Cálculo de los costos sin EOQ
+                const costoPedidoTotalSinEOQ = (demandaAnual / cantidadP) * costoPedido;
+                const costoMantenimientoTotalSinEOQ = (cantidadP / 2) * costoMantenimiento;
+                const costoTotalSinEOQ = costoPedidoTotalSinEOQ + costoMantenimientoTotalSinEOQ;
+
+                // Añadir los resultados a la tabla sin EOQ
+                const resultadoRowSinEOQ = document.createElement('tr');
+                resultadoRowSinEOQ.innerHTML = `
+                    <td>${row.querySelector('.codigo-item').value}</td>
+                    <td>${row.querySelector('.nombre-producto').value}</td>
+                    <td>${costoPedidoTotalSinEOQ.toFixed(2)}</td>
+                    <td>${costoMantenimientoTotalSinEOQ.toFixed(2)}</td>
+                    <td>${costoTotalSinEOQ.toFixed(2)}</td>
+                `;
+                resultadosBodySinEOQ.appendChild(resultadoRowSinEOQ);
+            }
+        }
+    });
+}
+
+
+function descargarPDF() {function descargarPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Título del PDF
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("Resultados EOQ - Análisis de Costos", 20, 20);
+
+    // Espacio para la sección de resultados con EOQ
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text("Resultados con EOQ", 20, 30);
+
+    // Crear la tabla con resultados con EOQ usando autoTable
+    const resultadosEOQ = [];
+    const rowsEOQ = document.querySelectorAll('#resultados-eoq tbody tr');
+    rowsEOQ.forEach((row) => {
+        const cells = row.querySelectorAll('td');
+        resultadosEOQ.push([
+            cells[0].textContent, // Código Item
+            cells[1].textContent, // Nombre Producto
+            cells[2].textContent, // EOQ
+            cells[3].textContent, // Costo Pedido
+            cells[4].textContent, // Costo Mantenimiento
+            cells[5].textContent  // Costo Total
+        ]);
+    });
+
+    // Generar la tabla con autoTable
+    doc.autoTable({
+        startY: 35, // Posición vertical donde comienza la tabla
+        head: [['Código Item', 'Nombre Producto', 'EOQ', 'Costo Pedido (S/.)', 'Costo Mantenimiento (S/.)', 'Costo Total (S/.)']],
+        body: resultadosEOQ,
+        theme: 'grid', // Estilo con bordes
+        headStyles: { fillColor: [0, 123, 255], textColor: 255, fontSize: 10, fontStyle: 'bold' },
+        bodyStyles: { fontSize: 10 },
+        alternateRowStyles: { fillColor: [240, 240, 240] }, // Color alternativo para filas
+        margin: { top: 20, left: 20, right: 20 }, // Márgenes de la tabla
+        tableWidth: 'auto', // Ajustar el ancho de las columnas automáticamente
+    });
+
+    // Espacio para la sección de resultados sin EOQ
+    doc.addPage(); // Agregar una nueva página si es necesario
+    doc.text("Resultados sin EOQ", 20, 20);
+
+    // Crear la tabla con resultados sin EOQ usando autoTable
+    const resultadosSinEOQ = [];
+    const rowsSinEOQ = document.querySelectorAll('#resultados-sin-eoq tbody tr');
+    rowsSinEOQ.forEach((row) => {
+        const cells = row.querySelectorAll('td');
+        resultadosSinEOQ.push([
+            cells[0].textContent, // Código Item
+            cells[1].textContent, // Nombre Producto
+            cells[2].textContent, // Costo Pedido
+            cells[3].textContent, // Costo Mantenimiento
+            cells[4].textContent  // Costo Total
+        ]);
+    });
+
+    // Generar la tabla con autoTable
+    doc.autoTable({
+        startY: 30, // Posición vertical donde comienza la tabla
+        head: [['Código Item', 'Nombre Producto', 'Costo Pedido (S/.)', 'Costo Mantenimiento (S/.)', 'Costo Total (S/.)']],
+        body: resultadosSinEOQ,
+        theme: 'grid', // Estilo con bordes
+        headStyles: { fillColor: [0, 123, 255], textColor: 255, fontSize: 10, fontStyle: 'bold' },
+        bodyStyles: { fontSize: 10 },
+        alternateRowStyles: { fillColor: [240, 240, 240] }, // Color alternativo para filas
+        margin: { top: 20, left: 20, right: 20 }, // Márgenes de la tabla
+        tableWidth: 'auto', // Ajustar el ancho de las columnas automáticamente
+    });
+
+    // Descargar el PDF
+    doc.save('resultados_eoq.pdf');
+}
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Título del PDF
+    doc.setFontSize(16);
+    doc.text("Resultados EOQ", 20, 20);
+
+    // Resultados con EOQ
+    doc.setFontSize(12);
+    doc.text("Resultados con EOQ", 20, 30);
+    let yPosition = 40;
+    const resultadosEOQ = document.querySelectorAll('#resultados-eoq tbody tr');
+    resultadosEOQ.forEach((row, index) => {
+        const cells = row.querySelectorAll('td');
+        const text = [
+            cells[0].textContent, // Código Item
+            cells[1].textContent, // Nombre Producto
+            cells[2].textContent, // EOQ
+            cells[3].textContent, // Costo Pedido
+            cells[4].textContent, // Costo Mantenimiento
+            cells[5].textContent  // Costo Total
+        ];
+        doc.text(text.join(" | "), 20, yPosition);
+        yPosition += 10;
+    });
+
+    yPosition += 10;
+    doc.text("Resultados sin EOQ", 20, yPosition);
+    yPosition += 10;
+    const resultadosSinEOQ = document.querySelectorAll('#resultados-sin-eoq tbody tr');
+    resultadosSinEOQ.forEach((row, index) => {
+        const cells = row.querySelectorAll('td');
+        const text = [
+            cells[0].textContent, // Código Item
+            cells[1].textContent, // Nombre Producto
+            cells[2].textContent, // Costo Pedido
+            cells[3].textContent, // Costo Mantenimiento
+            cells[4].textContent  // Costo Total
+        ];
+        doc.text(text.join(" | "), 20, yPosition);
+        yPosition += 10;
+    });
+
+    // Descargar el PDF
+    doc.save('resultados_eoq.pdf');
+}
+
+</script>
+
+</body>
+</html>
